@@ -187,7 +187,7 @@ where $X$ is re-constructed by subtracting every column by it's mean $X_i = X_i 
 \frame{
 \frametitle{Principal Component Analysis (PCA)}
 \begin{itemize}
-    \item Algebraically, principal components are particular linear combinations of the p random variables $X_1, X_2, ..., X_D$.
+    \item Algebraically, principal components are particular linear combinations of the $D$ random variables $X_1, X_2, ..., X_D$.
     \item Geometrically, these linear combinations represent the selection of a new coordinate system obtained by rotating the original system.
 \end{itemize}
 }
@@ -245,7 +245,7 @@ The important point to note is that the variance of any linear combination can b
 \frame{
 \frametitle{Principal Component Analysis (PCA)}
 \begin{itemize}
-    \item Principal components are those linear combinations $Y1, Y_2,...,Y_D$ whose variances are as large as possible.
+    \item Principal components are those linear combinations $Y_1, Y_2,...,Y_D$ whose variances are as large as possible.
     \item First principal component: Linear combination $w_1^TX$ that maximize $Var(w_1^TX)$ subject to $||w_1||_2^2 = 1$
     \item Second principal component: Linear combination $w_2^TX$ that maximize $Var(w_2^TX)$ subject to $||w_2||_2^2 = 1$ and $w_2^Tw_1 = 0$
     \item $i$th principal component: Linear combination $w_i^TX$ that maximize $Var(w_i^TX)$ subject to $||w_i||_2^2 = 1$ and $w_i^Tw_k = 0$ for $k < i$
@@ -394,6 +394,15 @@ The important point to note is that the variance of any linear combination can b
     \end{figure}
 }
 
+\frame{
+\frametitle{Applications}
+    \centering
+    \begin{figure}
+    	\includegraphics[scale=0.5]{obama.png}\\
+    	\includegraphics[scale=0.5]{eigenfaces.png}
+    	\caption{Eigenfaces in face recognition.}
+    \end{figure}
+}
 
 \frame{
 \frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
@@ -416,12 +425,11 @@ The important point to note is that the variance of any linear combination can b
 \frame{
 \frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
 \begin{itemize}
-    \item Are such distances reliable? 
+    \item How about non-linear data? 
 \end{itemize}
 \centering
     \begin{figure}
-    	\includegraphics[scale=0.5]{swissroll.png}
-    	\caption{Swiss Roll dataset}
+    	\includegraphics[scale=0.5]{nonlinear-dataset.png}
     \end{figure}
 }
 
@@ -459,20 +467,6 @@ probabilities that represent similarities
  \end{equation}
 }
 
-\frame{
-\frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
-\begin{itemize}
-    \item Converting the high-dimensional Euclidean distances into conditional
-probabilities that represent similarities 
-\end{itemize}
-\centering
-    \begin{figure}
-    	\includegraphics[scale=0.5]{tsne-gaussian.png}
-    \end{figure}
- \begin{equation}
-     p_{j|i} = \frac{\exp(-||x_i-x_j||^2/2\sigma_i^2)}{\sum_{j'\ne i}\exp(-||x_i-x_j'||^2/2\sigma_i^2)}
- \end{equation}
-}
 
 \frame{
 \frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
@@ -487,6 +481,69 @@ probabilities that represent similarities.
      p_{ij} = \frac{p_{j|i} + p_{i|j}}{2N}
     \end{equation}
     \item We set the bandwidth $\sigma_i$ such that the conditional has fixed \textit{perplexity}.
+    \begin{equation}
+     Perp(P_i) = 2^{-\sum_{j}p_{j|i}log_2p_j}
+    \end{equation}
+\end{itemize}
+}
+
+\frame{
+\frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
+\begin{itemize}
+    \item Similarity in low dimension is measured as:
+    \begin{equation}
+     q_{ij} = \frac{(1+||y_i-y_j||^2)^-1}{\sum_{k} \sum_{l\ne k}(1+||y_k-y_l||^2)^-1}
+    \end{equation}
+\end{itemize}
+}
+
+\frame{
+\frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
+\begin{itemize}
+    \item Cost function: Kullback Leibler (KL) divergence:
+    \begin{equation}
+     KL(P||Q) = \sum_i \sum_{j \ne i} p_{ij} log \frac{p_{ij}}{q_{ij}}
+    \end{equation}
+    \begin{itemize}
+        \item Large $p_{ij}$ modeled by small $q_{ij}$: $\rightarrow$ Big penalty.
+        \item Small $p_{ij}$ modeled by large $q_{ij}$: $\rightarrow$ Small penalty.
+        \item t-SNE mainly preserves local similarity structure of data. 
+    \end{itemize}
+    \item Gradient:
+    \begin{equation}
+        \frac{\partial C}{\partial y_i} = 4 \sum_{j \ne i} (p_{ij} - q_{ij})(1+||y_i-y_j||^2)^-1(y_i-y_j)
+    \end{equation}
+    
+\end{itemize}
+}
+
+\frame{
+\frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
+\centering
+    \begin{figure}
+    	\includegraphics[scale=0.5]{tsne-algorithm.png}
+    	\caption{t-SNE learning algorithm}
+    \end{figure}
+}
+
+\frame{
+\frametitle{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
+\centering
+    \begin{figure}
+    	\includegraphics[scale=0.35]{tsne-mnist.png}
+    	\caption{t-SNE on MNIST dataset}
+    \end{figure}
+}
+
+\frame{
+\frametitle{PCA vs t-SNE}
+\begin{itemize}
+    \item t-SNE is computationally expensive and can take several hours on million-sample datasets where PCA will finish in seconds or minutes.
+    \item Linear dimensionality reduction algorithms, like PCA, concentrate on placing dissimilar data points far apart in a lower dimension.
+    \item But in order to represent high dimension data on low  dimension, non-linear manifold, it is essential that similar data points must be represented close together, which is something t-SNE does, not PCA.
+    \item Since PCA is a linear algorithm, it will not be able to interpret the complex polynomial relationship between features while t-SNE is made to capture exactly that representation.
+    \item Since t-SNE is parameterless, everytime new data comes in, t-SNE has to learn new embedding for that data. While PCA can be used a feature extraction function (eigenface for example).
+    
 \end{itemize}
 }
 
@@ -498,5 +555,7 @@ probabilities that represent similarities.
 [2] Tiep H. Vu, Principal Component Analysis, https://machinelearningcoban.com/2017/06/15/pca/
 
 [3] Laurens van der Maaten \& Geoffrey Hinton, Visualizing Data using t-SNE.
+
+[4] Manifold learning, https://scikit-learn.org/stable/modules/manifold.html.
 }
 \end{document}
